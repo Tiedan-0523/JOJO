@@ -2,127 +2,54 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>参与抽奖</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#165DFF',
-            secondary: '#4080FF'
-          },
-          fontFamily: {
-            inter: ['Inter', 'system-ui', 'sans-serif']
-          }
-        }
-      }
-    }
-  </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .glass {
-        background: rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-      }
-      .btn-hover {
-        @apply transition-all duration-300 hover:scale-105 active:scale-95;
-      }
-    }
+  <title>参与抽奖</title>
+  <style>
+    body{background:#eef6ff;font-family:Arial;padding:20px}
+    .card{background:white;border-radius:16px;padding:24px;max-width:400px;margin:0 auto;box-shadow:0 4px 12px #00000010}
+    input,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px}
+    button{background:#0077ff;color:white;border:none;padding:14px;border-radius:10px;width:100%;font-size:16px}
+    .success{display:none;text-align:center;color:#00b850;font-weight:bold;margin-top:20px}
   </style>
 </head>
-<body class="font-inter bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen p-4 flex items-center justify-center">
-  <div id="app" class="w-full max-w-sm">
-    <!-- 毛玻璃主卡片 -->
-    <div class="glass rounded-3xl shadow-lg p-6 space-y-6">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold text-primary mb-1">🎁 参与直播抽奖</h1>
-        <p class="text-sm text-gray-500">填写信息即可参与抽奖</p>
-      </div>
-
-      <div id="form" class="space-y-5">
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1.5">昵称</label>
-          <input 
-            id="nickname" 
-            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-            placeholder="请输入你的昵称"
-          >
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1.5">手机号</label>
-          <input 
-            id="phone" 
-            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-            placeholder="请输入手机号"
-          >
-        </div>
-        
-        <!-- 答题区域 -->
-        <div id="quizWrap" class="hidden">
-          <label class="block text-sm font-medium text-gray-600 mb-1.5">选择答案（A/B/C）</label>
-          <select 
-            id="answer"
-            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-          >
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-          </select>
-        </div>
-        
-        <!-- 提交按钮 -->
-        <button 
-          onclick="join()" 
-          class="w-full bg-gradient-to-r from-primary to-secondary text-white font-semibold py-3.5 rounded-xl btn-hover shadow-md shadow-primary/20 mt-2"
-        >
-          提交参与
-        </button>
-      </div>
-
-      <!-- 成功提示 -->
-      <div id="success" class="hidden text-center py-6">
-        <div class="text-5xl mb-3">🎉</div>
-        <p class="text-primary font-semibold text-lg">参与成功！</p>
-        <p class="text-sm text-gray-500 mt-1">等待主播开奖即可</p>
-      </div>
-    </div>
+<body>
+  <div class="card">
+    <h2 style="text-align:center;color:#0077ff">参与直播抽奖</h2>
+    <input id="nickname" placeholder="输入昵称">
+    <input id="phone" placeholder="输入手机号">
+    <select id="answer" class="hidden">
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+    </select>
+    <button onclick="join()">提交参与</button>
+    <div class="success" id="success">✅ 参与成功！等待开奖</div>
   </div>
 
   <script>
-    let config
-    loadConfig()
-
     // 读取配置
-    function loadConfig() {
-      config = JSON.parse(localStorage.getItem('lotteryConfig') || '{"joinType":"free"}')
-      document.getElementById('quizWrap').classList.toggle('hidden', config.joinType === 'free')
+    let cfg = JSON.parse(localStorage.getItem('lotteryConfig') || '{}');
+    if (cfg.joinType === 'quiz') {
+      document.getElementById('answer').classList.remove('hidden');
     }
 
-    // 参与抽奖
     function join() {
-      let nickname = document.getElementById('nickname').value.trim()
-      let phone = document.getElementById('phone').value.trim()
-      
+      let nickname = document.getElementById('nickname').value.trim();
+      let phone = document.getElementById('phone').value.trim();
       if (!nickname || !phone) {
-        alert('请填写昵称和手机号')
-        return
+        alert('请填写昵称和手机号');
+        return;
       }
-      
-      let answer = config.joinType === 'quiz' ? document.getElementById('answer').value : ''
-      let users = JSON.parse(localStorage.getItem('lotteryUsers') || '[]')
-      
-      users.push({ nickname, phone, answer })
-      localStorage.setItem('lotteryUsers', JSON.stringify(users))
-      
-      // 显示成功
-      document.getElementById('form').classList.add('hidden')
-      document.getElementById('success').classList.remove('hidden')
+
+      let users = JSON.parse(localStorage.getItem('lotteryUsers') || '[]');
+      users.push({
+        nickname: nickname,
+        phone: phone,
+        answer: document.getElementById('answer').value
+      });
+      localStorage.setItem('lotteryUsers', JSON.stringify(users));
+
+      document.getElementById('success').style.display = 'block';
     }
   </script>
 </body>
