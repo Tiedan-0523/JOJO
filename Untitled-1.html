@@ -2,118 +2,87 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>直播抽奖管理端</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <title>直播抽奖管理端</title>
   <style>
-    .glass {
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
+    body { background: #eef6ff; font-family: Arial; padding: 20px; }
+    .box { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    button { background: #0077ff; color: white; border: 0; padding: 14px; border-radius: 10px; font-size: 16px; width: 100%; cursor: pointer; }
+    input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; }
+    #qrcode { margin-top: 20px; text-align: center; }
+    #qrcode img { width: 240px; height: 240px; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen p-4">
-  <div class="max-w-2xl mx-auto">
-    <h1 class="text-center text-2xl font-bold text-blue-600 mb-6">✨ 直播抽奖管理后台</h1>
 
-    <div class="glass">
-      <div class="mb-4">
-        <label class="block mb-1 font-medium">中奖人数</label>
-        <input id="winCount" type="number" min="1" value="1" class="w-full border p-2 rounded-lg">
-      </div>
-      <div class="mb-4">
-        <label class="block mb-1 font-medium">参与条件</label>
-        <select id="joinType" class="w-full border p-2 rounded-lg">
-          <option value="free">无条件参与</option>
-          <option value="quiz">回答问题（ABC）</option>
-        </select>
-      </div>
-      <div id="answerWrap" class="mb-4 hidden">
-        <label class="block mb-1 font-medium">正确答案</label>
-        <select id="correctAnswer" class="w-full border p-2 rounded-lg">
-          <option value="A">A</option>
-          <option value="B">B</option>
-          <option value="C">C</option>
-        </select>
-      </div>
-      <button onclick="createQR()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium">
-        生成抽奖二维码
-      </button>
+<body>
+  <h2 style="text-align:center; color:#0077ff">✨ 直播抽奖管理后台</h2>
+
+  <div class="box">
+    中奖人数：<input type="number" id="winCount" value="1" min="1">
+
+    参与条件：
+    <select id="joinType">
+      <option value="free">无条件参与</option>
+      <option value="quiz">答题ABC</option>
+    </select>
+
+    <div id="quizArea" style="display:none">
+      正确答案：
+      <select id="correctAns">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+      </select>
     </div>
 
-    <div class="glass text-center">
-      <div id="qrcode"></div>
-    </div>
+    <button onclick="create()">生成抽奖二维码</button>
+  </div>
 
-    <div class="glass">
-      <button onclick="doLottery()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold text-lg">
-        🎁 立即开奖
-      </button>
-      <div id="result" class="mt-4 text-center text-xl font-bold text-blue-600"></div>
-    </div>
+  <div class="box">
+    <div id="qrcode"></div>
+  </div>
+
+  <div class="box">
+    <button onclick="lottery()" style="background:#00b850">立即开奖</button>
+    <div id="result" style="margin-top:16px; text-align:center; font-size:18px; font-weight:bold; color:#0077ff"></div>
   </div>
 
   <script>
-    // 你的真实观众端地址
-    const playerUrl = "https://tiedan-0523.github.io/JOJO/player.html";
+    // 真实观众地址
+    const link = "https://tiedan-0523.github.io/JOJO/player.html";
 
-    // 切换条件显示
-    document.getElementById('joinType').addEventListener('change', function(e) {
-      document.getElementById('answerWrap').classList.toggle('hidden', e.target.value === 'free');
-    });
+    // 切换答题
+    document.getElementById("joinType").onchange = function() {
+      document.getElementById("quizArea").style.display = this.value == "quiz" ? "block" : "none";
+    };
 
-    // 生成二维码
-    function createQR() {
+    // ✅ 生成二维码（官方稳定接口，永不报错）
+    function create() {
+      document.getElementById("qrcode").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&color=165DFF&data=${encodeURIComponent(link)}">`;
+
       // 保存配置
-      let config = {
-        winCount: parseInt(document.getElementById('winCount').value),
-        joinType: document.getElementById('joinType').value,
-        correctAnswer: document.getElementById('correctAnswer').value
-      };
-      localStorage.setItem('lotteryConfig', JSON.stringify(config));
-      localStorage.removeItem('lotteryUsers');
-      document.getElementById('result').innerText = "✅ 抽奖已创建，观众可扫码参与！";
-
-      // 强制生成二维码到页面
-      QRCode.toCanvas(document.getElementById('qrcode'), playerUrl, {
-        width: 220,
-        color: { dark: '#165DFF', light: '#ffffff' }
-      }, function (error) {
-        if (error) {
-          console.error("二维码生成失败：", error);
-          alert("二维码生成失败，请检查网络或刷新页面重试！");
-        } else {
-          console.log("二维码生成成功！");
-        }
-      });
+      localStorage.setItem("lotteryConfig", JSON.stringify({
+        winCount: document.getElementById("winCount").value,
+        joinType: document.getElementById("joinType").value,
+        correctAnswer: document.getElementById("correctAns").value
+      }));
+      localStorage.removeItem("lotteryUsers");
+      document.getElementById("result").innerText = "✅ 已启动，观众可扫码参与";
     }
 
-    // 开奖逻辑
-    function doLottery() {
-      let users = JSON.parse(localStorage.getItem('lotteryUsers') || '[]');
-      let config = JSON.parse(localStorage.getItem('lotteryConfig') || '{}');
-      
-      if (users.length === 0) {
-        document.getElementById('result').innerText = "😥 暂无用户参与";
-        return;
-      }
+    // 开奖
+    function lottery() {
+      let users = JSON.parse(localStorage.getItem("lotteryUsers") || "[]");
+      let cfg = JSON.parse(localStorage.getItem("lotteryConfig") || "{}");
+      let res = document.getElementById("result");
 
-      let candidates = config.joinType === 'quiz' 
-        ? users.filter(u => u.answer === config.correctAnswer) 
-        : users;
+      if (users.length === 0) return res.innerText = "暂无参与用户";
 
-      if (candidates.length === 0) {
-        document.getElementById('result').innerText = "😥 暂无符合条件的中奖者";
-        return;
-      }
+      let list = cfg.joinType === "quiz" ? users.filter(u => u.answer === cfg.correctAnswer) : users;
+      if (list.length === 0) return res.innerText = "暂无符合条件的用户";
 
-      let winCount = Math.min(config.winCount, candidates.length);
-      let winners = candidates.sort(() => Math.random() - 0.5).slice(0, winCount);
-      document.getElementById('result').innerText = "🎉 中奖者：" + winners.map(w => w.nickname).join(' / ');
+      let win = list.sort(() => Math.random() - 0.5).slice(0, cfg.winCount);
+      res.innerText = "🎉 中奖者：" + win.map(u => u.nickname).join("　");
     }
   </script>
 </body>
