@@ -11,146 +11,95 @@
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            primary: '#165DFF',
-            secondary: '#4080FF',
-            accent: '#0FC6C2'
-          },
-          fontFamily: {
-            inter: ['Inter', 'system-ui', 'sans-serif']
-          }
+          colors: { primary: '#165DFF', secondary: '#4080FF' }
         }
       }
     }
   </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .glass {
-        background: rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-      }
-      .glass-dark {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      .btn-hover {
-        @apply transition-all duration-300 hover:scale-105 active:scale-95;
-      }
-      .card-shadow {
-        box-shadow: 0 8px 32px rgba(22, 93, 255, 0.1);
-      }
-    }
+  <style>
+    .glass { background: rgba(255,255,255,0.25); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.18); border-radius: 24px; }
+    .glass-dark { background: rgba(255,255,255,0.15); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; }
   </style>
 </head>
-<body class="font-inter bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 min-h-screen p-4 md:p-8">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 min-h-screen p-4 font-sans">
   <div class="max-w-5xl mx-auto">
-    <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-center text-primary mb-8 tracking-tight">✨ 直播抽奖管理后台</h1>
+    <h1 class="text-2xl md:text-3xl font-bold text-center text-[#165DFF] my-6">✨ 直播抽奖管理后台</h1>
 
-    <div class="glass rounded-3xl card-shadow p-6 md:p-10 mb-8">
-      <h2 class="text-lg md:text-xl font-semibold text-gray-700 mb-6">抽奖配置</h2>
-      <div class="grid gap-5 mb-8">
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-2">中奖人数</label>
-          <input id="winCount" type="number" min="1" value="1" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-2">参与条件</label>
-          <select id="joinType" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-            <option value="free">无条件参与</option>
-            <option value="quiz">回答问题（ABC）</option>
-          </select>
-        </div>
-        <div id="answerWrap" class="hidden">
-          <label class="block text-sm font-medium text-gray-600 mb-2">正确答案</label>
-          <select id="correctAnswer" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-          </select>
-        </div>
+    <div class="glass p-6 md:p-8 mb-6">
+      <h3 class="font-semibold mb-4">抽奖配置</h3>
+      <div class="mb-3">中奖人数：<input type="number" id="winCount" value="1" class="border p-2 rounded w-full"></div>
+      <div class="mb-3">参与条件：
+        <select id="joinType" class="border p-2 rounded w-full">
+          <option value="free">无条件</option>
+          <option value="quiz">答题ABC</option>
+        </select>
       </div>
-      <button onclick="createLottery()" class="w-full bg-gradient-to-r from-primary to-secondary text-white font-semibold py-3.5 rounded-xl btn-hover shadow-lg shadow-primary/25">生成抽奖二维码</button>
+      <div id="answerWrap" class="mb-3 hidden">正确答案：
+        <select id="correctAnswer" class="border p-2 rounded w-full">
+          <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+        </select>
+      </div>
+      <button onclick="createLottery()" class="bg-[#165DFF] text-white p-3 rounded w-full">生成抽奖二维码</button>
     </div>
 
-    <div class="glass rounded-3xl p-8 text-center mb-8">
-      <div id="qrcode" class="inline-block p-3 glass-dark rounded-2xl"></div>
+    <div class="glass p-6 text-center mb-6">
+      <div id="qrcode"></div>
     </div>
 
-    <div class="glass rounded-3xl p-6 md:p-8 mb-8">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-        <span>👥 当前参与用户</span>
-        <span id="userCount" class="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">0</span>
-      </h2>
-      <div id="userList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+    <div class="glass p-6 mb-6">
+      <h3 class="font-semibold">参与用户：<span id="userCount">0</span> 人</h3>
+      <div id="userList" class="grid grid-cols-2 gap-2 mt-3"></div>
     </div>
 
-    <button onclick="doLottery()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 rounded-xl btn-hover shadow-lg shadow-green-500/25 text-lg">🎁 立即开奖</button>
-    <div id="result" class="mt-6 text-center text-[clamp(1.2rem,2vw,1.8rem)] font-bold text-primary py-4 px-6 glass-dark rounded-2xl min-h-[80px] flex items-center justify-center"></div>
+    <button onclick="doLottery()" class="bg-green-500 text-white p-3 rounded w-full text-lg font-bold">立即开奖</button>
+    <div id="result" class="text-center mt-4 text-xl font-bold text-[#165DFF]"></div>
   </div>
 
   <script>
-    let config = { winCount:1, joinType:'free', correctAnswer:'A' }
+    let config = { winCount:1, joinType:"free", correctAnswer:"A" }
     let users = []
-    const userList = document.getElementById('userList')
-    const result = document.getElementById('result')
-    const userCount = document.getElementById('userCount')
 
-    document.getElementById('joinType').addEventListener('change', function(e){
-      document.getElementById('answerWrap').classList.toggle('hidden', e.target.value === 'free')
+    // 🔥 已经改成你的真实地址了！
+    const playerUrl = "https://tiedan-0523.github.io/JOJO/player.html"
+
+    document.getElementById("joinType").addEventListener("change", function(e){
+      document.getElementById("answerWrap").classList.toggle("hidden", e.target.value === "free")
     })
 
     function createLottery() {
-      config.winCount = parseInt(document.getElementById('winCount').value)
-      config.joinType = document.getElementById('joinType').value
-      config.correctAnswer = document.getElementById('correctAnswer').value
-      localStorage.setItem('lotteryConfig', JSON.stringify(config))
+      config.winCount = parseInt(document.getElementById("winCount").value)
+      config.joinType = document.getElementById("joinType").value
+      config.correctAnswer = document.getElementById("correctAnswer").value
+      localStorage.setItem("lotteryConfig", JSON.stringify(config))
       users = []
-      localStorage.removeItem('lotteryUsers')
-      renderUsers()
-      result.innerHTML = ''
+      localStorage.removeItem("lotteryUsers")
+      document.getElementById("result").innerText = "✅ 已创建抽奖！"
 
-      // 🔥 修复点：固定线上真实地址
-      const playerUrl = "https://tiedan-0523.github.io/JOJO/player.html"
-
-      QRCode.toCanvas(document.getElementById('qrcode'), playerUrl, {
-        width: 220, margin: 1, color: { dark: '#165DFF', light: '#ffffff' }
+      // 生成二维码
+      QRCode.toCanvas(document.getElementById("qrcode"), playerUrl, {
+        width: 220, color: { dark:"#165DFF", light:"#ffffff" }
       })
-
-      result.innerHTML = "✅ 抽奖已创建，观众可扫码参与"
-      setTimeout(() => result.innerHTML = '', 2000)
     }
 
     setInterval(() => {
-      let list = JSON.parse(localStorage.getItem('lotteryUsers') || '[]')
-      if(JSON.stringify(list) !== JSON.stringify(users)){ users = list; renderUsers() }
+      let list = JSON.parse(localStorage.getItem("lotteryUsers") || "[]")
+      users = list
+      document.getElementById("userCount").innerText = users.length
+      let el = document.getElementById("userList")
+      el.innerHTML = ""
+      users.forEach((u,i) => {
+        let d = document.createElement("div")
+        d.innerText = (i+1)+". "+u.nickname
+        d.className = "bg-white/50 p-2 rounded"
+        el.appendChild(d)
+      })
     }, 1000)
 
-    function renderUsers() {
-      userList.innerHTML = ''
-      userCount.innerText = users.length
-      users.forEach((u,i)=>{
-        let div = document.createElement('div')
-        div.className = 'bg-white/50 px-3 py-2 rounded-xl text-center text-sm md:text-base border border-white/50'
-        div.innerText = `${i+1}. ${u.nickname}`
-        userList.appendChild(div)
-      })
-    }
-
     function doLottery() {
-      if(users.length===0) return result.innerHTML='😥 暂无用户参与'
-      let candidates = config.joinType==='quiz' ? users.filter(u=>u.answer===config.correctAnswer) : users
-      if(candidates.length===0) return result.innerHTML='😥 暂无答对观众'
-      let winCount = Math.min(config.winCount, candidates.length)
-      let shuffle = [...candidates].sort(()=>Math.random()-0.5)
-      let winners = shuffle.slice(0, winCount)
-      result.innerHTML = '🎲 开奖中...'
-      setTimeout(()=>{
-        result.innerHTML = '🎉 中奖者：' + winners.map(w=>w.nickname).join('　')
-      },600)
+      if(users.length===0) return alert("暂无用户")
+      let candidates = config.joinType==="quiz" ? users.filter(u=>u.answer===config.correctAnswer) : users
+      let winUsers = candidates.sort(()=>Math.random()-0.5).slice(0, config.winCount)
+      document.getElementById("result").innerText = "🎉 中奖：" + winUsers.map(u=>u.nickname).join(" / ")
     }
   </script>
 </body>
