@@ -2,56 +2,39 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>参与抽奖</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { primary: '#165DFF' },
-          fontFamily: { inter: ['Inter','sans-serif'] }
-        }
-      }
-    }
-  </script>
-  <style>
-    .glass {
-      background: rgba(255,255,255,0.25);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:'#165DFF'},fontFamily:{inter:['Inter','sans-serif']}}}}</script>
+  <style>.glass{background:rgba(255,255,255,0.3);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);}</style>
 </head>
 <body class="font-inter bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen p-4">
   <div class="max-w-sm mx-auto glass rounded-3xl p-6">
     <h2 class="text-center text-xl font-bold text-primary mb-4">🎁 参与直播抽奖</h2>
-    <input id="nickname" placeholder="昵称" class="w-full border p-3 rounded-xl mb-3">
-    <input id="phone" placeholder="手机号" class="w-full border p-3 rounded-xl mb-3">
+    <input id="nickname" placeholder="请输入昵称" class="w-full border p-3 rounded-xl mb-3">
+    <input id="phone" placeholder="手机号（可不填）" class="w-full border p-3 rounded-xl mb-3">
     <select id="answer" class="w-full border p-3 rounded-xl mb-4 hidden">
-      <option value="A">A</option>
-      <option value="B">B</option>
-      <option value="C">C</option>
+      <option value="A">A</option><option value="B">B</option><option value="C">C</option>
     </select>
     <button onclick="join()" class="w-full bg-primary text-white py-3 rounded-xl">提交参与</button>
-    <div id="success" class="hidden text-center text-green-500 font-bold mt-4">✅ 参与成功！等待开奖</div>
+    <div id="ok" class="hidden text-center text-green-600 font-bold mt-4">✅ 参与成功！</div>
   </div>
 
   <script>
-    let cfg = JSON.parse(localStorage.getItem('lotteryConfig') || {});
-    if (cfg.joinType === 'quiz') {
-      document.getElementById('answer').classList.remove('hidden');
-    }
+    let cfg=JSON.parse(localStorage.getItem('cfg')||{});
+    if(cfg.joinType==='quiz')document.getElementById('answer').classList.remove('hidden');
 
-    function join() {
-      let name = document.getElementById('nickname').value.trim();
-      let phone = document.getElementById('phone').value.trim();
-      if (!name || !phone) return alert('请填写完整信息');
-      let users = JSON.parse(localStorage.getItem('lotteryUsers') || '[]');
-      users.push({ nickname: name, phone, answer: document.getElementById('answer').value });
-      localStorage.setItem('lotteryUsers', JSON.stringify(users));
-      document.getElementById('success').classList.remove('hidden');
+    function join(){
+      let name=document.getElementById('nickname').value.trim();
+      if(!name)return alert('请输入昵称');
+      let users=JSON.parse(localStorage.getItem('allUsers')||'[]');
+      users.push({
+        nickname:name,
+        answer:document.getElementById('answer').value
+      });
+      localStorage.setItem('allUsers',JSON.stringify(users));
+      document.getElementById('ok').classList.remove('hidden');
     }
   </script>
 </body>
